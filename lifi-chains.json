@@ -1,0 +1,146 @@
+[
+	{
+		"key": "eth",
+		"chainType": "EVM",
+		"name": "Ethereum",
+		"coin": "ETH",
+		"id": 1,
+		"mainnet": true
+	},
+	{
+		"key": "arb",
+		"chainType": "EVM",
+		"name": "Arbitrum",
+		"coin": "ETH",
+		"id": 42161,
+		"mainnet": true
+	},
+	{
+		"key": "opt",
+		"chainType": "EVM",
+		"name": "Optimism",
+		"coin": "ETH",
+		"id": 10,
+		"mainnet": true
+	},
+	{
+		"key": "pol",
+		"chainType": "EVM",
+		"name": "Polygon",
+		"coin": "MATIC",
+		"id": 137,
+		"mainnet": true
+	},
+	{
+		"key": "bsc",
+		"chainType": "EVM",
+		"name": "BSC",
+		"coin": "BNB",
+		"id": 56,
+		"mainnet": true
+	},
+	{
+		"key": "era",
+		"chainType": "EVM",
+		"name": "zkSync_Era",
+		"coin": "ETH",
+		"id": 324,
+		"mainnet": true
+	},
+	{
+		"key": "pze",
+		"chainType": "EVM",
+		"name": "Polygon zkEVM",
+		"coin": "ETH",
+		"id": 1101,
+		"mainnet": true
+	},
+	{
+		"key": "bas",
+		"chainType": "EVM",
+		"name": "BASE",
+		"coin": "ETH",
+		"id": 8453,
+		"mainnet": true
+	},
+	{
+		"key": "ava",
+		"chainType": "EVM",
+		"name": "Avalanche",
+		"coin": "AVAX",
+		"id": 43114,
+		"mainnet": true
+	},
+	{
+		"key": "lna",
+		"chainType": "EVM",
+		"name": "Linea",
+		"coin": "ETH",
+		"id": 59144,
+		"mainnet": true
+	},
+	{
+		"key": "dai",
+		"chainType": "EVM",
+		"name": "Gnosis",
+		"coin": "DAI",
+		"id": 100,
+		"mainnet": true
+	},
+	{
+		"key": "ftm",
+		"chainType": "EVM",
+		"name": "Fantom",
+		"coin": "FTM",
+		"id": 250,
+		"mainnet": true
+	},
+	{
+		"key": "mor",
+		"chainType": "EVM",
+		"name": "Moonriver",
+		"coin": "MOVR",
+		"id": 1285,
+		"mainnet": true
+	},
+	{
+		"key": "moo",
+		"chainType": "EVM",
+		"name": "Moonbeam",
+		"coin": "GLMR",
+		"id": 1284,
+		"mainnet": true
+	},
+	{
+		"key": "fus",
+		"chainType": "EVM",
+		"name": "FUSE",
+		"coin": "FUSE",
+		"id": 122,
+		"mainnet": true
+	},
+	{
+		"key": "okt",
+		"chainType": "EVM",
+		"name": "OKXChain",
+		"coin": "OKT",
+		"id": 66,
+		"mainnet": true
+	},
+	{
+		"key": "bob",
+		"chainType": "EVM",
+		"name": "Boba",
+		"coin": "ETH",
+		"id": 288,
+		"mainnet": true
+	},
+	{
+		"key": "aur",
+		"chainType": "EVM",
+		"name": "Aurora",
+		"coin": "ETH",
+		"id": 1313161554,
+		"mainnet": true
+	}
+]
