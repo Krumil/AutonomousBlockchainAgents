@@ -1,4 +1,3 @@
-import asyncio
 import base58
 import base64
 import json
@@ -14,7 +13,7 @@ from solana.rpc.async_api import AsyncClient
 from solana.rpc.commitment import Processed
 from solana.rpc.types import TxOpts
 
-from helius import NFTAPI, NameAPI, BalancesAPI, WebhooksAPI, TransactionsAPI
+from helius import BalancesAPI
 
 from jupiter_python_sdk.jupiter import Jupiter
 
@@ -164,33 +163,31 @@ async def get_supported_jupiter_tokens(wallet_address):
     return supported_tokens
 
 
-def get_wallet_balance():
+async def get_wallet_balance():
     wallet_address = os.getenv("SOLANA_ADDRESS_1")
-    tokens = asyncio.run(get_supported_jupiter_tokens(wallet_address=wallet_address))
+    tokens = await get_supported_jupiter_tokens(wallet_address=wallet_address)
     return json.dumps(tokens)
 
 
-def get_wallet_balance_with_solana_values():
-    tokens = get_wallet_balance()
+async def get_wallet_balance_with_solana_values():
+    tokens = await get_wallet_balance()
     tokens = json.loads(tokens)
     for token in tokens:
         if token["mint"] == "So11111111111111111111111111111111111111112":
             token["solValue"] = token["amount"] / 1000000000
         else:
             # get quote for token
-            quote = asyncio.run(
-                get_quote_solana(
-                    token["mint"],
-                    "So11111111111111111111111111111111111111112",
-                    token["amount"],
-                )
+            quote = await get_quote_solana(
+                token["mint"],
+                "So11111111111111111111111111111111111111112",
+                token["amount"],
             )
             token["solValue"] = int(quote["outAmount"]) / 1000000000
     return json.dumps(tokens)
 
 
-def get_wallet_sol_value():
-    tokens = get_wallet_balance_with_solana_values()
+async def get_wallet_sol_value():
+    tokens = await get_wallet_balance_with_solana_values()
     tokens = json.loads(tokens)
     sol_value = 0
     for token in tokens:
@@ -198,23 +195,23 @@ def get_wallet_sol_value():
     return sol_value
 
 
-def get_token_info_by_name_or_symbol_async(token_name_or_symbol):
-    token = asyncio.run(get_token_info_by_name_or_symbol(token_name_or_symbol))
-    return token
+# def get_token_info_by_name_or_symbol_async(token_name_or_symbol):
+#     token = asyncio.run(get_token_info_by_name_or_symbol(token_name_or_symbol))
+#     return token
 
 
-def execute_swap_solana_async(from_token_mint, to_token_mint, amount):
-    result = asyncio.run(execute_swap_solana(from_token_mint, to_token_mint, amount))
-    return result
+# def execute_swap_solana_async(from_token_mint, to_token_mint, amount):
+#     result = asyncio.run(execute_swap_solana(from_token_mint, to_token_mint, amount))
+#     return result
 
 
-# if main
-if __name__ == "__main__":
-    result = asyncio.run(
-        execute_swap_solana(
-            from_token_mint="3U8cZTbq4QkT14Kvb8Rj8CxfcyQx5V2XJHicMYE7QDmQ",
-            to_token_mint="HZ32SiTtw3kYyaHTtTfpHVF8EyXFcy7MBQXeFpnNvQ9c",
-            amount=109322994,
-        )
-    )
-    print(result)
+# # if main
+# if __name__ == "__main__":
+#     result = asyncio.run(
+#         execute_swap_solana(
+#             from_token_mint="3U8cZTbq4QkT14Kvb8Rj8CxfcyQx5V2XJHicMYE7QDmQ",
+#             to_token_mint="HZ32SiTtw3kYyaHTtTfpHVF8EyXFcy7MBQXeFpnNvQ9c",
+#             amount=109322994,
+#         )
+#     )
+#     print(result)

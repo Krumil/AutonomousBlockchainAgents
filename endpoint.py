@@ -1,14 +1,13 @@
 import os
 from fastapi.middleware.cors import CORSMiddleware
-
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List, Tuple
-from agent import agent_executor
+from agent import AvatarAgent
 
 app = FastAPI()
 
-# Add CORS middleware to allow cross-origin requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,44 +16,51 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.mount("/avatars", StaticFiles(directory="avatars"), name="avatars")
+
 
 class ChatMessage(BaseModel):
     input: str
     chat_history: List[Tuple[str, str]]
 
 
-@app.post("/chat")
-async def chat(message: ChatMessage):
+@app.websocket("/ws/chat")
+async def websocket_chat(websocket: WebSocket):
+    await websocket.accept()
+    agent_instance = AvatarAgent()
+    agent_instance.set_websocket(websocket)
+
     try:
-        response = agent_executor.invoke(
-            {"input": message.input, "chat_history": message.chat_history}
-        )
-
-        # Update chat history for continuity in conversation
-        updated_chat_history = message.chat_history + [
-            (message.input, response["output"])
-        ]
-
-        return {"output": response["output"], "chat_history": updated_chat_history}
+        while True:
+            data = await websocket.receive_json()
+            if data.get("type") == "start":
+                response = await agent_instance.start()
+                await websocket.send_json(response)
+            elif data.get("type") == "message":
+                response = await agent_instance.process_message(data["message"])
+                await websocket.send_json(response)
+            elif data.get("type") == "avatar":
+                response = get_avatar()
+                await websocket.send_json({"type": "avatar", "data": response})
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(e)
+    finally:
+        await websocket.close()
 
 
-# get endpoint to get the name of every folder inside the folders avatar
-@app.get("/avatars")
-async def get_avatar():
+def get_avatar():
     try:
         avatars = os.listdir("avatars")
-        formatted_avatars = []  # This correctly initializes an empty list
+        formatted_avatars = []
+        root = os.getenv("ROOT_URL", "http://localhost:8000")
         for avatar in avatars:
             with open(f"avatars/{avatar}/prompts/system.txt") as f:
                 system = f.read()
-            # Append a new dictionary to the list for each avatar
             formatted_avatars.append(
                 {
                     "system": system,
-                    "portrait": f"avatars/{avatar}/images/portrait.jpg",
+                    "portrait": f"{root}/avatars/{avatar}/images/portrait.jpg",
                     "name": avatar,
                 }
             )

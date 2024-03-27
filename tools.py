@@ -4,10 +4,10 @@ from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from actions.lify import execute_swap_on_same_chain
 from actions.jupiter import (
-    execute_swap_solana_async,
+    execute_swap_solana,
     get_wallet_balance_with_solana_values,
     get_wallet_sol_value,
-    get_token_info_by_name_or_symbol_async,
+    get_token_info_by_name_or_symbol,
 )
 from actions.vision import call_vision_model_on_dexscreener, navigate_url
 
@@ -21,7 +21,7 @@ class ExecuteSwapInput(BaseModel):
 
 
 execute_swap_tool = StructuredTool.from_function(
-    func=execute_swap_solana_async,
+    coroutine=execute_swap_solana,
     name="ExecuteSwap",
     description="Executes a token swap between two tokens on the same chain",
     args_schema=ExecuteSwapInput,
@@ -35,7 +35,7 @@ class GetTokenInfoInput(BaseModel):
 
 
 get_token_info_tool = StructuredTool.from_function(
-    func=get_token_info_by_name_or_symbol_async,
+    coroutine=get_token_info_by_name_or_symbol,
     name="GetTokenInfo",
     description="Get information about a token on Solana",
     args_schema=GetTokenInfoInput,
@@ -48,14 +48,14 @@ get_token_info_tool = StructuredTool.from_function(
 # )
 
 get_wallet_balance_tool = StructuredTool.from_function(
-    func=get_wallet_balance_with_solana_values,
+    coroutine=get_wallet_balance_with_solana_values,
     name="GetWalletBalance",
     description="Get the balance of your wallet on Solana",
 )
 
 
 get_wallet_balance_in_sol_values_tool = StructuredTool.from_function(
-    func=get_wallet_sol_value,
+    coroutine=get_wallet_sol_value,
     name="GetSOLWalletBalance",
     description="Get the balance of your wallet in SOL value",
 )
