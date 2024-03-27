@@ -17,6 +17,7 @@ app.add_middleware(
 )
 
 app.mount("/avatars", StaticFiles(directory="avatars"), name="avatars")
+app.mount("/audio", StaticFiles(directory="audio"), name="audio")
 
 
 class ChatMessage(BaseModel):

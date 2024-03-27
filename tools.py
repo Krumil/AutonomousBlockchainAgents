@@ -1,5 +1,6 @@
 from langchain.pydantic_v1 import BaseModel, Field
 from langchain.tools import StructuredTool, Tool
+from langchain_community.tools import ElevenLabsText2SpeechTool
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from actions.lify import execute_swap_on_same_chain
@@ -76,3 +77,5 @@ trending_coins_tool = StructuredTool.from_function(
 
 
 tavily_search = TavilySearchResults()
+
+eleven_labs_text2speech_tool = ElevenLabsText2SpeechTool()

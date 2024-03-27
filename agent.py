@@ -1,8 +1,14 @@
 import json
 import asyncio
+import random
+import string
 
 from typing import Dict
 from fastapi import WebSocket
+
+from elevenlabs.client import ElevenLabs
+from elevenlabs import play, save
+
 
 from typing import List, Tuple
 from langchain.agents import AgentExecutor
@@ -21,6 +27,7 @@ from tools import (
     # trending_coins_tool,
     get_token_info_tool,
     tavily_search,
+    eleven_labs_text2speech_tool,
 )
 
 
@@ -32,6 +39,17 @@ class AvatarAgent:
         self.llm_with_tools = None
         self.agent = None
         self.agent_executor = None
+        self.eleven_labs = ElevenLabs()
+
+    def _generate_audio(self, text: str):
+        audio = self.eleven_labs.generate(
+            text=text, voice="Rachel", model="eleven_monolingual_v1"
+        )
+        random_string = "".join(
+            random.choices(string.ascii_lowercase + string.digits, k=8)
+        )
+        save(audio, "audio/" + random_string + ".mp3")
+        return random_string + ".mp3"
 
     def _format_chat_history(self, chat_history: List[Tuple[str, str]]):
         buffer = []
@@ -70,6 +88,11 @@ class AvatarAgent:
             actions_str = json.dumps([action.json() for action in actions])
             messages_str = json.dumps([message.json() for message in messages])
             steps_str = json.dumps([step.json() for step in steps])
+            audio = ""
+
+            if messages and messages[0].json():
+                text_to_speak = json.loads(messages[0].json())["content"]
+                audio = self._generate_audio(text_to_speak)
 
             if self.websocket:
                 await self.websocket.send_json(
@@ -78,6 +101,7 @@ class AvatarAgent:
                         "action": actions_str,
                         "messages": messages_str,
                         "steps": steps_str,
+                        "audio": f"http://localhost:8000/audio/{audio}",
                     }
                 )
 
@@ -144,9 +168,10 @@ class AgentInput(BaseModel):
     )
 
 
-# if __name__ == "__main__":
-#     agent = AvatarAgent()
-#     asyncio.run(agent.start("Misha"))
-#     chat_history = []
-#     user_input = "Start trading. Don't stop until you execute a swap."
-#     response = asyncio.run(agent.stream(user_input, chat_history))
+if __name__ == "__main__":
+    agent = AvatarAgent()
+    asyncio.run(agent.start("Misha"))
+    chat_history = []
+    # user_input = "Start trading. Don't stop until you execute a swap."
+    user_input = "Tell me a joke and read it out for me."
+    response = asyncio.run(agent.stream(user_input, chat_history))
