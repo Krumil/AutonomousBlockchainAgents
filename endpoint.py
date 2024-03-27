@@ -34,7 +34,8 @@ async def websocket_chat(websocket: WebSocket):
         while True:
             data = await websocket.receive_json()
             if data.get("type") == "start":
-                response = await agent_instance.start()
+                name = data.get("name", "Misha")
+                response = await agent_instance.start(name)
                 await websocket.send_json(response)
             elif data.get("type") == "message":
                 response = await agent_instance.process_message(data["message"])

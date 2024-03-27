@@ -17,64 +17,21 @@ from tools import (
     execute_swap_tool,
     get_wallet_balance_tool,
     get_wallet_balance_in_sol_values_tool,
-    navigate_url_tool,
-    trending_coins_tool,
+    # navigate_url_tool,
+    # trending_coins_tool,
     get_token_info_tool,
+    tavily_search,
 )
 
 
 class AvatarAgent:
     def __init__(self):
-        self.websockets = None
-
-        # Load the assistant's system message
-        with open("avatars/Misha/prompts/system.txt", "r") as file:
-            assistant_system_message = file.read()
-
-        # Define the prompt template
-        self.prompt = ChatPromptTemplate.from_messages(
-            [
-                ("system", assistant_system_message),
-                MessagesPlaceholder(variable_name="chat_history"),
-                ("user", "{input}"),
-                MessagesPlaceholder(variable_name="agent_scratchpad"),
-            ]
-        )
-
-        # Initialize the language model with tools
-        self.llm = ChatOpenAI(
-            model="gpt-4-turbo-preview", temperature=0, streaming=True
-        )
-        tools = [
-            execute_swap_tool,
-            get_wallet_balance_tool,
-            get_wallet_balance_in_sol_values_tool,
-            navigate_url_tool,
-            trending_coins_tool,
-            get_token_info_tool,
-        ]
-        self.llm_with_tools = self.llm.bind(
-            functions=[convert_to_openai_function(t) for t in tools]
-        )
-
-        # Define the agent
-        self.agent = (
-            {
-                "input": lambda x: x["input"],
-                "chat_history": lambda x: self._format_chat_history(x["chat_history"]),
-                "agent_scratchpad": lambda x: format_to_openai_function_messages(
-                    x["intermediate_steps"]
-                ),
-            }
-            | self.prompt
-            | self.llm_with_tools
-            | OpenAIFunctionsAgentOutputParser()
-        )
-
-        # Define the agent executor
-        self.agent_executor = AgentExecutor(
-            agent=self.agent, tools=tools, return_intermediate_steps=True
-        ).with_types(input_type=AgentInput)
+        self.websocket = None
+        self.prompt = None
+        self.llm = None
+        self.llm_with_tools = None
+        self.agent = None
+        self.agent_executor = None
 
     def _format_chat_history(self, chat_history: List[Tuple[str, str]]):
         buffer = []
@@ -105,6 +62,10 @@ class AvatarAgent:
             messages = chunk.get("messages", [])
             steps = chunk.get("steps", [])
 
+            print("actions", actions)
+            print("messages", messages)
+            print("steps", steps)
+
             # stringified actions and messages and steps to send to the frontend
             actions_str = json.dumps([action.json() for action in actions])
             messages_str = json.dumps([message.json() for message in messages])
@@ -120,11 +81,60 @@ class AvatarAgent:
                     }
                 )
 
-    async def start(self):
+    async def start(self, name: str):
+        with open(f"avatars/{name}/prompts/system.txt", "r") as file:
+            assistant_system_message = file.read()
+
+        self.llm = ChatOpenAI(
+            model="gpt-4-turbo-preview", temperature=0, streaming=True
+        )
+
+        tools = [
+            execute_swap_tool,
+            get_wallet_balance_tool,
+            get_wallet_balance_in_sol_values_tool,
+            # navigate_url_tool,
+            # trending_coins_tool,
+            get_token_info_tool,
+            tavily_search,
+        ]
+        self.llm_with_tools = self.llm.bind(
+            functions=[convert_to_openai_function(t) for t in tools]
+        )
+
+        self.prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", assistant_system_message),
+                MessagesPlaceholder(variable_name="chat_history"),
+                ("user", "{input}"),
+                MessagesPlaceholder(variable_name="agent_scratchpad"),
+            ]
+        )
+
+        # Define the agent
+        self.agent = (
+            {
+                "input": lambda x: x["input"],
+                "chat_history": lambda x: self._format_chat_history(x["chat_history"]),
+                "agent_scratchpad": lambda x: format_to_openai_function_messages(
+                    x["intermediate_steps"]
+                ),
+            }
+            | self.prompt
+            | self.llm_with_tools
+            | OpenAIFunctionsAgentOutputParser()
+        )
+
+        # Define the agent executor
+        self.agent_executor = AgentExecutor(
+            agent=self.agent, tools=tools, return_intermediate_steps=True
+        ).with_types(input_type=AgentInput)
+
         user_input = """Start trading. Don't stop until you execute a swap.
+		Get the latest trending coin on solana using http://dexscreener.com/solana and navigate to the site.
+		Search online for info to help you make the best trades based on your personality.
 		Always remember to use as max amount the amount of the coin in your wallet you want to swap."""
         return await self.stream(user_input, [])
-        # return await self.invoke(user_input, [])
 
 
 class AgentInput(BaseModel):
@@ -136,13 +146,7 @@ class AgentInput(BaseModel):
 
 # if __name__ == "__main__":
 #     agent = AvatarAgent()
+#     asyncio.run(agent.start("Misha"))
 #     chat_history = []
 #     user_input = "Start trading. Don't stop until you execute a swap."
 #     response = asyncio.run(agent.stream(user_input, chat_history))
-
-#     # # Example loop to interact with the agent
-#     # for i in range(2):
-#     #     print("Misha:", response["output"])
-#     #     chat_history.append((user_input, response["output"]))
-#     #     user_input = "Keep trading"
-#     #     response = agent.invoke(user_input, chat_history)

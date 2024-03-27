@@ -10,6 +10,7 @@ from actions.jupiter import (
     get_token_info_by_name_or_symbol,
 )
 from actions.vision import call_vision_model_on_dexscreener, navigate_url
+from langchain_community.tools.tavily_search import TavilySearchResults
 
 
 class ExecuteSwapInput(BaseModel):
@@ -72,3 +73,6 @@ trending_coins_tool = StructuredTool.from_function(
     func=call_vision_model_on_dexscreener,
     description="Get the current trending coin on Solana",
 )
+
+
+tavily_search = TavilySearchResults()

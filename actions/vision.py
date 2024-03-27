@@ -1,6 +1,4 @@
 import base64
-import datetime
-import os
 from actions.scraping import scrape_site, scrape_dexscreener
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
