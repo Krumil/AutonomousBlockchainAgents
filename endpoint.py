@@ -59,9 +59,13 @@ def get_avatar():
         for avatar in avatars:
             with open(f"avatars/{avatar}/prompts/system.txt") as f:
                 system = f.read()
+
+            with open(f"avatars/{avatar}/prompts/description.txt") as f:
+                description = f.read()
             formatted_avatars.append(
                 {
                     "system": system,
+                    "description": description,
                     "portrait": f"{root}/avatars/{avatar}/images/portrait.jpg",
                     "name": avatar,
                 }

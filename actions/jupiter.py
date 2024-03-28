@@ -32,7 +32,7 @@ jupiter = Jupiter(
 )
 
 
-async def get_quote_solana(from_token_mint, to_token_mint, amount, slippage=15):
+async def get_quote_solana(from_token_mint, to_token_mint, amount, slippage=25):
     try:
         quote = await jupiter.quote(
             input_mint=from_token_mint,
@@ -49,7 +49,7 @@ async def get_quote_solana(from_token_mint, to_token_mint, amount, slippage=15):
 
 
 async def execute_swap_solana(
-    from_token_mint, to_token_mint, amount, slippage=1, max_retries=3, retry_delay=5
+    from_token_mint, to_token_mint, amount, slippage=25, max_retries=3, retry_delay=5
 ):
     """
     Executes a swap with retry logic.

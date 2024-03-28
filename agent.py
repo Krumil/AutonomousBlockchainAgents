@@ -3,6 +3,8 @@ import asyncio
 import random
 import string
 
+from datetime import date
+
 from typing import Dict
 from fastapi import WebSocket
 
@@ -27,7 +29,6 @@ from tools import (
     # trending_coins_tool,
     get_token_info_tool,
     tavily_search,
-    eleven_labs_text2speech_tool,
 )
 
 
@@ -49,7 +50,7 @@ class AvatarAgent:
             random.choices(string.ascii_lowercase + string.digits, k=8)
         )
         save(audio, "audio/" + random_string + ".mp3")
-        return random_string + ".mp3"
+        return f"http://localhost:8000/audio/{random_string}.mp3"
 
     def _format_chat_history(self, chat_history: List[Tuple[str, str]]):
         buffer = []
@@ -79,20 +80,21 @@ class AvatarAgent:
             actions = chunk.get("actions", [])
             messages = chunk.get("messages", [])
             steps = chunk.get("steps", [])
+            output = chunk.get("output", "")
+            audio = ""
 
             print("actions", actions)
             print("messages", messages)
             print("steps", steps)
+            print("output", output)
 
             # stringified actions and messages and steps to send to the frontend
             actions_str = json.dumps([action.json() for action in actions])
             messages_str = json.dumps([message.json() for message in messages])
             steps_str = json.dumps([step.json() for step in steps])
-            audio = ""
 
-            if messages and messages[0].json():
-                text_to_speak = json.loads(messages[0].json())["content"]
-                audio = self._generate_audio(text_to_speak)
+            # if output and len(output) > 0:
+            #     audio = self._generate_audio(output)
 
             if self.websocket:
                 await self.websocket.send_json(
@@ -101,7 +103,8 @@ class AvatarAgent:
                         "action": actions_str,
                         "messages": messages_str,
                         "steps": steps_str,
-                        "audio": f"http://localhost:8000/audio/{audio}",
+                        "output": output,
+                        "audio": audio,
                     }
                 )
 
@@ -154,10 +157,13 @@ class AvatarAgent:
             agent=self.agent, tools=tools, return_intermediate_steps=True
         ).with_types(input_type=AgentInput)
 
-        user_input = """Start trading. Don't stop until you execute a swap.
-		Get the latest trending coin on solana using http://dexscreener.com/solana and navigate to the site.
-		Search online for info to help you make the best trades based on your personality.
-		Always remember to use as max amount the amount of the coin in your wallet you want to swap."""
+        today = date.today()
+        user_input = """Be concise and start trading. 
+		Remember that today is {today}.
+		Always use the tools provided to help you make the best trades.
+		Search online for info to help you make the best trades based on your personality. 
+		When trading SOL always use at max 0.1 SOL."""
+        # user_input = "Tell me a joke"
         return await self.stream(user_input, [])
 
 
@@ -172,6 +178,6 @@ if __name__ == "__main__":
     agent = AvatarAgent()
     asyncio.run(agent.start("Misha"))
     chat_history = []
-    # user_input = "Start trading. Don't stop until you execute a swap."
-    user_input = "Tell me a joke and read it out for me."
+    user_input = "Start trading. Don't stop until you execute a swap."
+    # user_input = "Tell me a joke and read it out for me."
     response = asyncio.run(agent.stream(user_input, chat_history))
